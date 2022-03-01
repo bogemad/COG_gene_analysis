@@ -1,0 +1,44 @@
+#!/usr/bin/env python3
+
+import argparse, os, glob
+import COG_gene_analysis.venn_diagram_input as venn_diagram_input
+import COG_gene_analysis.COGs as COGs
+import COG_gene_analysis.unique_proteins as unique_proteins
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-o', action='store', dest='out', help='Output directory')
+parser.add_argument('-r', action='store', dest='ofr', help='orthofinder results directory e.g. Results_Feb24')
+parser.add_argument('-g', action='store', dest='fun', nargs='+', help='Funannotate output directories')
+
+args = parser.parse_args()
+
+orthogroups = os.path.join(args.ofr, 'Orthogroups', 'Orthogroups.tsv')
+unassigned = os.path.join(args.ofr, 'Orthogroups', 'Orthogroups_UnassignedGenes.tsv')
+print("Sorting genes into presence/absence groups...")
+venn_files = venn_diagram_input.generate(orthogroups, unassigned, args.out)
+cog_ann = []
+prot_l = []
+ann_l = []
+COG_l = []
+
+for fun in args.fun:
+    print("Processing {} COG annotations...".format(os.path.basename(fun)))
+    gbk = glob.glob('{}/annotate_results/*.gbk'.format(fun))[0]
+    outfile = os.path.join(args.out, os.path.splitext(os.path.basename(gbk))[0] + '.cog_annotations.csv')
+    cog_ann.append(outfile)
+    COGs.extract(gbk, outfile)
+    COG_l.append(outfile)
+    prot_l.append(glob.glob('{}/annotate_results/*.proteins.fa'.format(fun))[0])
+    ann_l.append(glob.glob('{}/annotate_results/*.annotations.txt'.format(fun))[0])
+
+print("Generating COG summary tsv for all genes...")
+COGs.generate_summary(cog_ann, os.path.join(args.out, "COG_summary.csv"))
+print("Processing COG annotations for gene presence/absence groups...")
+ig_outfiles = COGs.interest_genes(cog_ann, venn_files, args.out)
+print("Generating COG summary tsv for gene presence/absence groups...")
+COGs.generate_summary(ig_outfiles, os.path.join(args.out, 'interest_groups_COGs', 'interest_group_COG_summary.csv'))
+
+
+print("Extracting proteins/annotations for gene presence/absence groups...")
+unique_proteins.extract_all(venn_files, prot_l, ann_l, COG_l, os.path.join(args.out, 'unique_orthogroups'))
