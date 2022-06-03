@@ -33,7 +33,7 @@ def extract(gene_file, prots, anns, COGs, out):
     anno_d = consolidate_dictionaries([ input_list(a, delim='\t', header=True) for a in anns ])
     with open(anns[0]) as f:
         hl = f.readline().strip('\n').split('\t')
-        header = '\t'.join(hl[:5] + hl[6:7] + hl[15:16] + ['COG\n'])
+        header = '\t'.join(["Orthogroup", "GeneID", "Protein length"] + hl[3:-4])
     cog_d = consolidate_dictionaries([ input_list(a) for a in COGs ])
     output_desired_protein_fastas(og_d, all_proteins, protein_dir)
     output_desired_protein_annotations(og_d, anno_d, annotation_dir, header, cog_d)
@@ -75,20 +75,20 @@ def output_desired_protein_annotations(og_d, anno_d, outdir, header, cog_d):
         og_l = []
         for prot in og_prots:
             anno = prot.split('-')[0]
-            og_l.append('\t'.join([anno] + anno_d[anno][:4] + anno_d[anno][5:6] + anno_d[anno][14:15] + [cog_d[anno][0]]))
+            og_l.append('\t'.join([og, anno] + [str(len(anno_d[anno][23])/3)] + anno_d[anno][2:-4]))
         outfile = os.path.join(outdir, "{}.annotations.tsv".format(og))
         with open(outfile, 'w') as outh:
-            outh.write(header)
+            outh.write(header + '\n')
             for line in og_l:
                 outh.write(line + '\n')
 
 def output_desired_protein_annotations_in_one_file(indir, outdir, header):
     outfile = os.path.join(outdir, "{}.unique.annotations.tsv".format(os.path.basename(outdir)))
     outh = open(outfile, 'w')
-    outh.write(header)
+    outh.write(header + '\n')
     for file in os.listdir(indir):
         with open(os.path.join(indir, file)) as inh:
-            outh.write(file.replace('.annotations.tsv','') + '\n')
+            #outh.write(file.replace('.annotations.tsv','') + '\n')
             null = next(inh)
             outh.write(inh.read())
     outh.close()

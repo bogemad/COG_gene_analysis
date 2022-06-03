@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 from Bio import SeqIO
-import sys, csv, os
+import sys, csv, os, argparse
 from collections import defaultdict
-
+from pprint import pprint
 
 
 def output_note_data(qual):

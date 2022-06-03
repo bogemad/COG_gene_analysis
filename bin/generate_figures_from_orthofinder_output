@@ -9,11 +9,12 @@ import COG_gene_analysis.unique_proteins as unique_proteins
 parser = argparse.ArgumentParser()
 parser.add_argument('-o', action='store', dest='out', help='Output directory')
 parser.add_argument('-r', action='store', dest='ofr', help='orthofinder results directory e.g. Results_Feb24')
+parser.add_argument('-c', action='store', dest='clade', help='Clade to use from Orthofinder output e.g. N1')
 parser.add_argument('-g', action='store', dest='fun', nargs='+', help='Funannotate output directories')
 
 args = parser.parse_args()
 
-orthogroups = os.path.join(args.ofr, 'Orthogroups', 'Orthogroups.tsv')
+orthogroups = os.path.join(args.ofr, 'Phylogenetic_Hierarchical_Orthogroups', '{}.tsv'.format(args.clade))
 unassigned = os.path.join(args.ofr, 'Orthogroups', 'Orthogroups_UnassignedGenes.tsv')
 print("Sorting genes into presence/absence groups...")
 venn_files = venn_diagram_input.generate(orthogroups, unassigned, args.out)
